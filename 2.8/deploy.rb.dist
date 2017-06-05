@@ -1,0 +1,76 @@
+###########################
+# PARAMETERS
+###########################
+set :conf_application, 		    "Your appanme"
+
+# Directory inside the docker image where your app is mounted
+set :conf_repository,  		    "/home/appuser/app"
+
+#####################
+# COMPOSER
+#####################
+set :composer_options,  "--verbose --prefer-dist --optimize-autoloader --classmap-authoritative" # to install with dev dependencies
+set :use_composer,      true
+set :vendors_mode,      "install"
+
+#####################
+# SERVER
+#####################
+set :conf_user,				        "username"
+set :conf_domain,             "example.org"
+set :conf_deploy_to,          "/path/to/htdocs"
+set :ssh_options,             { forward_agent: true, port: 22 }
+set :use_sudo, false
+
+#####################
+# APPLICATION
+#####################
+set :conf_deploy_branch,       "master"
+set :symfony_env_prod,         "prod"
+set :dump_assetic_assets,   true
+
+set :model_manager, "doctrine"
+set :scm,           :git
+set :shared_files,      [app_path + "/config/parameters.yml"]
+set :shared_children,   ["vendor", app_path + "/sessions"]
+
+
+# DATABASE
+###########################
+before 'deploy:create_symlink',   'deploy:migrate'
+after 'symfony:composer:get',       'setup:composer_register_rollback'
+
+###################
+# CAPISTRANO
+###################
+set :interactive_mode, 		false
+
+# Be more verbose by uncommenting the following line
+logger.level = Logger::MAX_LEVEL
+
+set :user, 				   "#{conf_user}"
+set :keep_releases, 	3
+
+set :application, 	"#{conf_application}"
+set :domain,      	"#{conf_domain}"
+set :deploy_to,   	"#{conf_deploy_to}"
+set :repository,  	"#{conf_repository}"
+set :deploy_via,	   :rsync_with_remote_cache
+set :app_path,    	"app"
+set :branch, 		    "#{conf_deploy_branch}"
+set :deploy_to,   	"#{conf_deploy_to}"
+
+role :web,            domain                         # Your HTTP server, Apache/etc
+role :app,            domain, :primary => true       # This may be the same as your `Web` server
+role :db, domain, :primary => true
+
+after "deploy", "deploy:cleanup"
+
+###########################
+# LIBS
+###########################
+namespace :setup do
+  task :composer_register_rollback do
+    on_rollback { run "cd #{conf_deploy_to}/current && SYMFONY_ENV=prod php composer.phar install --verbose --prefer-dist --optimize-autoloader --no-interaction" }
+  end
+end
