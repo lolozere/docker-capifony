@@ -1,0 +1,11 @@
+#!/bin/bash
+
+dir_bash="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+dir_source="${dir_bash}/.."
+
+docker run --rm -i -t \
+	-v ${dir_source}:/home/appuser/app \
+	-v ~/.ssh:/home/appuser/.ssh \
+	-v $(readlink -f $SSH_AUTH_SOCK):/home/appuser/ssh-agent \
+	-e WORKER_UID=$(id -u) \
+	lolozere/capifony:2.8 ${@:1}
