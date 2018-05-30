@@ -24,7 +24,7 @@ RUN useradd --create-home --user-group --shell /bin/bash appuser && \
 # Dependencies for ruby
 RUN apt-get install -y libssl-dev libreadline-dev zlib1g-dev git
 RUN apt-get install -y libgdbm-dev libncurses5-dev automake libtool bison libffi-dev
-RUN apt-get install -y curl
+RUN apt-get install -y curl dnsutils
 
 # Download and install RVM with a default version
 RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
